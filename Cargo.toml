@@ -12,6 +12,7 @@ serde = "1.0"
 ron = "0.7"
 heron = { version = "3.1.0", default-features = false, features = ["2d"] }
 rand = "0.8.5"
+bevy_asset_ron = "0.4"
 
 [profile.dev.package."*"]
 opt-level = 3

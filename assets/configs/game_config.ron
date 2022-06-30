@@ -1,3 +1,5 @@
 (
-    
+    gravity: -360.1,
+    speed: 2,
+    jump_velocity: 300.0,
 )

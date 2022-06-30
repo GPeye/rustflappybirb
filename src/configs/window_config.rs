@@ -9,6 +9,7 @@ pub struct WindowConfig {
     pub width: f32,
     pub height: f32,
     pub resizable: bool,
+    pub hot_reload: bool,
 }
 
 impl WindowConfig {
@@ -39,6 +40,7 @@ impl WindowConfig {
             width: 800.,
             height: 400.,
             resizable: true,
+            hot_reload: false,
         }
     }
 }

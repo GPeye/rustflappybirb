@@ -1,5 +1,6 @@
 use crate::game::physics::*;
 use crate::game::state::*;
+use crate::GameConfig;
 use bevy::prelude::*;
 use heron::prelude::*;
 
@@ -106,13 +107,18 @@ fn spawn_player(
 
 fn jump(
     mouse_button_input: ResMut<Input<MouseButton>>,
+    keyboard_input: ResMut<Input<KeyCode>>,
     mut players: Query<&mut Velocity, With<Player>>,
     audio: Res<Audio>,
     asset_server: ResMut<AssetServer>,
+    game_config: Res<GameConfig>,
 ) {
-    if mouse_button_input.just_pressed(MouseButton::Left) {
+    if mouse_button_input.just_pressed(MouseButton::Left)
+        || keyboard_input.just_pressed(KeyCode::Space)
+    {
         let mut velocity = players.single_mut();
-        velocity.linear = Vec2::new(0.0, 1.0).normalize_or_zero().extend(0.0) * 300.0;
+        velocity.linear =
+            Vec2::new(0.0, 1.0).normalize_or_zero().extend(0.0) * game_config.0.jump_velocity;
         let sound = asset_server.load("sound/wing.ogg");
         audio.play(sound);
     }

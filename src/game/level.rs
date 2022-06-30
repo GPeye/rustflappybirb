@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use heron::prelude::*;
 use rand::prelude::random;
 
+use crate::configs::game_config::*;
 use crate::game::physics::*;
 use crate::game::state::*;
 
@@ -10,13 +11,13 @@ pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Gravity::from(Vec3::new(0.0, -360.1, 0.0)));
         app.insert_resource(MusicController::default());
 
         app.add_plugin(PhysicsPlugin::default());
         app.add_system_set(
             SystemSet::on_enter(AppState::Playing)
-                .with_system(clean_level.before(setup_level))
+                .with_system(clean_level.before(load_assets))
+                .with_system(load_assets.before(setup_level))
                 .with_system(setup_level),
         );
         app.add_system_set(
@@ -36,7 +37,7 @@ impl Plugin for LevelPlugin {
 #[derive(Default)]
 struct MusicController(Handle<AudioSink>);
 
-fn setup_level(
+fn load_assets(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
     audio: Res<Audio>,
@@ -45,7 +46,24 @@ fn setup_level(
     let music = asset_server.load("sound/theme.ogg");
     let handle = audio_sinks.get_handle(audio.play(music));
     commands.insert_resource(MusicController(handle));
+}
 
+fn setup_level(
+    mut commands: Commands,
+    asset_server: ResMut<AssetServer>,
+    audio_sinks: Res<Assets<AudioSink>>,
+    music_controller: Res<MusicController>,
+    game_config: Res<GameConfig>,
+) {
+    if let Some(sink) = audio_sinks.get(&music_controller.0) {
+        sink.play();
+    }
+    info!("{:?}", game_config.0.gravity);
+    // if let Some(gc) = game_config.get(&game_handle.0) {
+    //     commands.insert_resource(Gravity::from(Vec3::new(0.0, -300.0, 0.0)));
+    // }
+
+    commands.insert_resource(Gravity::from(Vec3::new(0.0, game_config.0.gravity, 0.0)));
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
     spawn_background(&mut commands, &asset_server);
@@ -89,9 +107,12 @@ fn spawn_background(commands: &mut Commands, asset_server: &ResMut<AssetServer>)
     }
 }
 
-fn update_background(mut backgrounds: Query<&mut Transform, With<Background>>) {
+fn update_background(
+    mut backgrounds: Query<&mut Transform, With<Background>>,
+    game_config: Res<GameConfig>,
+) {
     for mut transform in backgrounds.iter_mut() {
-        transform.translation.x -= 1.;
+        transform.translation.x -= game_config.0.speed / 2.;
 
         if transform.translation.x < -840. {
             transform.translation.x = 840.
@@ -197,9 +218,9 @@ fn pipe_random_y() -> f32 {
     random::<f32>() * 500.
 }
 
-fn update_pipes(mut pipes: Query<&mut Transform, With<PipePair>>) {
+fn update_pipes(mut pipes: Query<&mut Transform, With<PipePair>>, game_config: Res<GameConfig>) {
     for mut transform in pipes.iter_mut() {
-        transform.translation.x -= 2.;
+        transform.translation.x -= game_config.0.speed;
 
         if transform.translation.x < -537. {
             transform.translation.x = 537.;
