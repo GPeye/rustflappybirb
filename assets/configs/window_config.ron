@@ -1,0 +1,6 @@
+(
+    title: "Rusty Birb",
+    width: 1024.0,
+    height: 768.0,
+    resizable: false,
+)
